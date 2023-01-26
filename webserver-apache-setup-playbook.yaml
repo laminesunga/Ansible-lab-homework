@@ -1,0 +1,94 @@
+- name: setting up apache webservers on amazon linux servers
+  hosts: amz-linux-nodes
+  vars_files:
+    - variables.yml
+
+  tasks:
+    - name: Upgrade all packages on server # ym update -y
+      ansible.builtin.yum:
+        name: '*'
+        state: latest
+    - name: install the lastest version of apache on the server # yum install httpd -y
+      ansible.builtin.yum:
+        name: httpd
+        state: present
+
+    - name: Using debug module to print something
+      ansible.builtin.debug:
+        msg: this module print {{ player }} , {{ player}} is playing for {{club}} and he is the {{reference}}
+
+    - name: Start service httpd, if not started # systemctl start httpd
+      ansible.builtin.service:
+        name: httpd
+        state: started
+
+    - name: Enable service httpd at server launch # systemctl enable httpd
+      ansible.builtin.service:
+        name: httpd
+        enabled: yes
+
+    - name: Copy index.html file from the controller to the nodes at var/www/html/
+      ansible.builtin.copy:
+        src: /root/web/index.html
+        dest: /var/www/html/
+      notify:
+       - restartApache
+
+  handlers:
+    - name: restartApache
+      ansible.builtin.service:
+       name: httpd
+       state: restarted 
+
+
+
+- name: setting up apache webservers on ubuntu servers
+  hosts: ubuntu-nodes
+  vars_files:
+    - variables.yml
+
+  tasks:
+    - name: ubuntu- Update all packages to their latest version
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+    - name: ubuntu- install the lastest version of apache on the server 
+      ansible.builtin.apt:
+        name: apache2
+        state: present
+
+    - name: ubuntu- Using debug module to print something
+      ansible.builtin.debug:
+        msg: this module print {{ player }} , {{ player}} is playing for {{club}} and he is the {{reference}}
+
+    - name: ubuntu- Start service httpd, if not started # systemctl start httpd
+      ansible.builtin.service:
+        name: apache2
+        state: started
+
+    - name: ubuntu- Enable service httpd at server launch # systemctl enable httpd
+      ansible.builtin.service:
+        name: apache2
+        enabled: yes
+
+    - name: ubuntu- Copy index.html file from the controller to the nodes at var/www/html/
+      ansible.builtin.copy:
+        src: /root/web/index.html
+        dest: /var/www/html/
+      notify:
+       - restartApache-ubuntu
+
+  handlers:
+    - name: restartApache-ubuntu
+      ansible.builtin.service:
+       name: apache2
+       state: restarted 
+
+
+- name: ping all server
+  hosts: all
+
+  tasks:
+    - name: Ping all the nodes
+      ansible.builtin.ping:
+
